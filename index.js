@@ -5,12 +5,13 @@ import userRouter from "./routes/userRouter.js";
 import productRouter from "./routes/productRouter.js";
 import verifyJwt from "./middleware/auth.js";
 import orderRouter from "./routes/orderRouter.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 let app = express();
 mongoose
-  .connect(
-    "mongodb+srv://root:1234@cluster1.0v7ki1f.mongodb.net/?retryWrites=true&w=majority&appName=Cluster1"
-  )
+  .connect(process.env.mongo_url)
   .then(() => {
     console.log("Connected to MongoDB");
   })
