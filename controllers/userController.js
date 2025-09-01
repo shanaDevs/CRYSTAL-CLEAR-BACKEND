@@ -65,7 +65,7 @@ export function loginUser(req, res) {
           expiresIn: "1h",
         });
 
-        res.status(200).json({ message: "Login successful", token: token });
+        res.status(200).json({ message: "Login successful", token: token , user: userData });
       } else {
         res.status(403).json({ message: "Invalid password" });
       }
