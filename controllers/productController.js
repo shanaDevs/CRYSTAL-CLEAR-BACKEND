@@ -14,7 +14,15 @@ export function createProduct(req, res) {
     return;
   }
 
-  const product = new Products(req.body);
+  // Handle field name conversion from altName to altnames
+  const productData = { ...req.body };
+  if (productData.altName) {
+    productData.altnames = productData.altName;
+    delete productData.altName;
+  }
+
+  const product = new Products(productData);
+  console.log(product);
   product.save()
     .then(() => {
       res.status(201).json({
@@ -88,7 +96,13 @@ export function updateProduct(req, res) {
     }
 
     const productId = req.params.productId;
-    const updatedData = req.body;
+    const updatedData = { ...req.body };
+    
+    // Handle field name conversion from altName to altnames
+    if (updatedData.altName) {
+        updatedData.altnames = updatedData.altName;
+        delete updatedData.altName;
+    }
 
         Products.findOneAndUpdate({ productId: productId }, updatedData)
             .then(() => {
