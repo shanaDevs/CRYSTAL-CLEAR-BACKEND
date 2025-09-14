@@ -50,6 +50,25 @@ export function getProducts(req, res) {
         });
 }
 
+export async function getProductById(req, res) {
+  const productId = req.params.productId;
+  try {
+    const product = await Products.findOne({ productId: productId });
+    if (!product) {
+      res.status(404).json({
+        message: "Product not found",
+      });
+      return;
+    }
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching product",
+      error: error,
+    });
+  }
+}
+
 export function deleteProduct(req, res) {
   if (req.user == null) {
     res.status(403).json({
