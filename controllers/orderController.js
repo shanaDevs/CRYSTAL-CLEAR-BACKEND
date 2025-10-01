@@ -1,6 +1,7 @@
 import Order from "../models/order.js";
+import Products from "../models/products.js";
 
-export function createOrder(req, res) {
+export async function createOrder(req, res) {
   if (req.user == null) {
     res.status(403).json({
       message: "User not authenticated",
@@ -23,7 +24,7 @@ export function createOrder(req, res) {
       date: -1,
     })
     .limit(1)
-    .then((lastBills) => {
+    .then(async (lastBills) => {
       if (lastBills.length == 0) {
         orderData.orderID = "ORD001";
       } else {
@@ -36,9 +37,25 @@ export function createOrder(req, res) {
       }
 
       for (let i = 0; i < body.billItems.length; i++) {
-        const billItem = body.billItems[i];
+        const product = await Products.findOne({
+          productId: body.billItems[i].productId,
+        });
+        if (product == null) {
+          res.status(400).json({
+            message: `Product with ID ${body.billItems[i].productId} not found`,
+          });
+          return;
+        }
+        orderData.billItems[i] = {
+          productId: product.productId,
+          productName: product.name,
+          image: product.images[0],
+          quantity: body.billItems[i].quantity,
+          price: product.price,
+        };
+        orderData.total =
+          orderData.total + product.price * body.billItems[i].quantity;
       }
-
       const order = new Order(orderData);
       order
         .save()
@@ -79,35 +96,33 @@ export function getOrder(req, res) {
 }
 
 export function getAllOrders(req, res) {
-  if(req.user == null){
+  if (req.user == null) {
     res.status(403).json({
       message: "User not authenticated",
     });
     return;
   }
-  if(req.user.role == "admin"){
-     Order.find()
-    .then((orders) => {
-      res.status(200).json(orders);
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: "Error fetching orders",
-        error: error.message,
+  if (req.user.role == "admin") {
+    Order.find()
+      .then((orders) => {
+        res.status(200).json(orders);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "Error fetching orders",
+          error: error.message,
+        });
       });
-    });
-  }else{
-    Order.find(
-      { email: req.user.email }
-    ).then((orders) => {
-      res.status(200).json(orders);
-    }).catch(
-      (error) => {
-      res.status(500).json({
-        message: "no order found",
-        error: error.message,
+  } else {
+    Order.find({ email: req.user.email })
+      .then((orders) => {
+        res.status(200).json(orders);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: "no order found",
+          error: error.message,
+        });
       });
-    });
   }
- 
 }
